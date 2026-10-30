@@ -1,0 +1,58 @@
+{
+  "autoMemoryEnabled": false,
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "\"$CLAUDE_PROJECT_DIR/.beyin/hooks/session-start.sh\" hafiza", "timeout": 15 },
+          { "type": "command", "command": "\"$CLAUDE_PROJECT_DIR/.beyin/hooks/session-start.sh\" kurallar", "timeout": 5 }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          { "type": "command", "command": "\"$CLAUDE_PROJECT_DIR/.beyin/hooks/prompt-counter.sh\"", "timeout": 5 },
+          { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/.beyin/hooks/baglam-bekcisi.py\"", "timeout": 5 },
+          { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/.beyin/hooks/hata-yakalayici.py\"", "timeout": 5 }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/.beyin/hooks/yikici-komut-bekcisi.py\"", "timeout": 5 }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/.beyin/hooks/baglam-bekcisi.py\"", "timeout": 5 }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "hooks": [
+          { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/.beyin/hooks/hata-yakalayici.py\"", "timeout": 5 }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          { "type": "command", "command": "\"$CLAUDE_PROJECT_DIR/.beyin/hooks/pre-compact.sh\"", "timeout": 10 }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          { "type": "command", "command": "\"$CLAUDE_PROJECT_DIR/.beyin/hooks/session-end.sh\"", "timeout": 10 }
+        ]
+      }
+    ]
+  }
+}
