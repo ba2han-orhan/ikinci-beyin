@@ -13,5 +13,6 @@
 | bağlam bekçisi | `.beyin/hooks/baglam-bekcisi.py` | 200k/250k bağlamda devir uyarısı |
 | hata yakalayıcı | `.beyin/hooks/hata-yakalayici.py` | Başarısız araç çağrılarını hata defterine yazar |
 | yıkıcı komut bekçisi | `.beyin/hooks/yikici-komut-bekcisi.py` | Geri alınamaz silme komutlarını durdurur |
+| codex bağlantısı | `.beyin/scripts/codex_kur.py` | Hook'ları `~/.codex/hooks.json` dosyasına yazar / kaldırır |
 | yedek | `.beyin/scripts/yedek.sh` | Vault'u git ile commit'ler, remote varsa push'lar |
 | skill'ler | `.beyin/skills/` | beyin-doktor, haftalik-ozet, hata-defteri, gecmis-import |
