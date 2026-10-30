@@ -74,6 +74,11 @@ REPO=$(mktemp -d)/ikinci-beyin && git clone https://github.com/ba2han-orhan/ikin
 
 ## AŞAMA 2: Soru-cevap (zorunlu kişiselleştirme)
 
+**Önce sor:** "Profil anketini (`araclar/profil-anketi.html`) doldurdun mu?" Doldurduysa
+`profil.json` yolunu al, 1–5. soruları atla (cevaplar dosyada), yalnız 6–10'u sor ve aşama 4'te
+`--profil <yol>` kullan. Doldurmadıysa anketi tarayıcıda açmasını öner (6 dakika, ayrıntılı
+kişiselleştirme); istemezse aşağıdaki soruları sor.
+
 Soruları **tek tek** ya da küçük gruplar hâlinde, gündelik dille sor. Her sorunun neden önemli
 olduğunu yarım cümleyle söyle. Cevapları bir yere not et; sonunda özetleyip onay al.
 
@@ -140,6 +145,11 @@ EOF
 ```bash
 python3 "$REPO/araclar/kur.py" --hedef "$HEDEF" --degerler /tmp/beyin-degerler.json --kuru
 ```
+
+Anket varsa `--profil profil.json` ekle; `--degerler` dosyasına yalnız `VAULT_ADI` ve
+`MEVCUT_NOTLAR_SATIRI` yazman yeter (elle verilen değer anketi ezer). Kurulum ayrıca
+`850-hafiza/kullanici-profili.md` yazar; asistan ilk oturumda bu notu projelere, hedeflere ve
+kurallara dağıtır.
 
 Onay gelince uygula. Kullanıcı **Codex** kullanıyorsa (cevap 9) `--codex` ekle:
 

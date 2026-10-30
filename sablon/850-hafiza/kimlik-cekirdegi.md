@@ -16,6 +16,7 @@ Ben {{ASISTAN_ADI}}; {{KULLANICI_ADI}} için düşünme ortağı ve ikinci beyni
 
 ## İlgili
 
+- [[kullanici-profili]] — kurulum anketindeki ayrıntılı tercihler (ritim, hedefler, sınırlar).
 - [[davranis-kurallari]] — kullanıcının verdiği bağlayıcı davranış kuralları; kimliğin uygulamaya dönmüş hâli.
 - [[vault-not-baglanti-standardi]] — aynı kuralların vault yapısı üzerindeki karşılığı.
 - [[aktif-konu-takibi]] — süreklilik burada tutulur.

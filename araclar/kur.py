@@ -4,6 +4,7 @@
 Kullanım:
   python3 araclar/kur.py --hedef /vault/yolu --degerler degerler.json --kuru   # plan, hiçbir şey yazmaz
   python3 araclar/kur.py --hedef /vault/yolu --degerler degerler.json          # uygula
+  python3 araclar/kur.py --hedef /vault/yolu --profil profil.json              # anket çıktısıyla
 
 Kurallar:
 - Hedefte zaten olan dosyanın üzerine asla yazılmaz; atlanır ve raporda listelenir.
@@ -35,14 +36,68 @@ METIN_UZANTILARI = {".md", ".json", ".sh", ".py", ".txt", ""}
 OZEL = {".claude/settings.json", ".claude/skills"}
 
 
-def degerleri_oku(yol: Path) -> dict[str, str]:
-    veri = json.loads(yol.read_text(encoding="utf-8"))
+def degerleri_oku(yol: Path | None, profil: dict, hedef: Path) -> dict[str, str]:
+    from datetime import date
+    veri = {"VAULT_ADI": hedef.name, "BUGUN": date.today().strftime("%d.%m.%Y")}
+    veri.update(profil.get("degerler", {}))
+    if yol:
+        veri.update(json.loads(yol.read_text(encoding="utf-8")))
     eksik = [k for k in GEREKLI if not str(veri.get(k, "")).strip()]
     if eksik:
         sys.exit(f"HATA: degerler.json içinde eksik alan: {', '.join(eksik)}")
     if not re.fullmatch(r"\d\d\.\d\d\.\d{4}", veri["BUGUN"]):
         sys.exit("HATA: BUGUN GG.AA.YYYY biçiminde olmalı")
     return {**ISTEGE_BAGLI, **{k: str(v) for k, v in veri.items()}}
+
+
+PROFIL_ETIKETLERI = (
+    ("uc_sey", "Kendini anlatan üç şey"), ("projeler", "Aktif projeler"),
+    ("hedef_3_ay", "3 aylık hedef"), ("hedef_1_yil", "1 yıllık hedef"),
+    ("tarihler", "Yaklaşan tarihler"), ("uzunluk", "Cevap uzunluğu"),
+    ("itiraz", "Katılmadığında"), ("emoji", "Emoji"), ("ogrenme", "Öğrenme tarzı"),
+    ("saatler", "Verimli saatler"), ("oturum", "Oturum düzeni"),
+    ("hatirlatma", "Oturum başı hatırlatma"), ("onaysiz_yapmasin", "Onaysız yapmasın"),
+    ("sinir_eden", "Sinir eden davranış"), ("ek_not", "Ek not"),
+)
+
+
+def profil_notu(profil: dict, degerler: dict[str, str]) -> str:
+    """Anket cevaplarından 850-hafiza/kullanici-profili.md üretir."""
+    cevaplar = profil.get("profil", {})
+    satirlar = [
+        f"# {degerler['KULLANICI_ADI']}: Profil",
+        "",
+        "> ⬆️ [[kimlik-cekirdegi]] · Kurulum anketinden gelen tercihler",
+        "",
+    ]
+    dolu = False
+    for anahtar, etiket in PROFIL_ETIKETLERI:
+        deger = cevaplar.get(anahtar)
+        if not deger:
+            continue
+        dolu = True
+        if isinstance(deger, list) and anahtar in ("projeler", "tarihler"):
+            satirlar += [f"## {etiket}", "", *[f"- {d}" for d in deger], ""]
+        else:
+            metin = ", ".join(deger) if isinstance(deger, list) else str(deger)
+            satirlar += [f"- **{etiket}:** {metin}"]
+    if not dolu:
+        satirlar.append("Anket doldurulmadı. Tercihler ortaya çıktıkça buraya eklenir.")
+    satirlar += [
+        "",
+        "## Asistan için",
+        "",
+        "İlk oturumda bu notu oku: projeler için `300-projeler/` altında durum notu, tarihler için",
+        "[[hedefler-genel-bakis]] girdisi aç; \"onaysız yapmasın\" ve \"sinir eden davranış\" maddelerini",
+        "[[davranis-kurallari]] dosyasına kural olarak yaz. Her adımı kullanıcıya kısaca bildir.",
+        "",
+        "## İlgili",
+        "",
+        "- [[kimlik-cekirdegi]] — bu tercihlerin özetlendiği kimlik çapası.",
+        "- [[davranis-kurallari]] — sınırların bağlayıcı kurala dönüştüğü yer.",
+        "",
+    ]
+    return "\n".join(satirlar)
 
 
 def sablon_dosyalari() -> list[Path]:
@@ -125,13 +180,17 @@ def skilleri_bagla(hedef: Path, kuru: bool, rapor: list[str], kok: str = ".claud
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--hedef", type=Path, required=True)
-    ap.add_argument("--degerler", type=Path, required=True)
+    ap.add_argument("--degerler", type=Path, help="elle doldurulmuş değerler (profildekileri ezer)")
+    ap.add_argument("--profil", type=Path, help="araclar/profil-anketi.html çıktısı")
     ap.add_argument("--kuru", action="store_true", help="yalnız planı göster")
     ap.add_argument("--codex", action="store_true", help="hook'ları ~/.codex/hooks.json'a da yaz")
     args = ap.parse_args()
 
     hedef = args.hedef.expanduser().resolve()
-    degerler = degerleri_oku(args.degerler)
+    if not (args.degerler or args.profil):
+        ap.error("--degerler ya da --profil gerekli")
+    profil = json.loads(args.profil.read_text(encoding="utf-8")) if args.profil else {}
+    degerler = degerleri_oku(args.degerler, profil, hedef)
     if not args.kuru:
         hedef.mkdir(parents=True, exist_ok=True)
 
@@ -151,6 +210,15 @@ def main() -> int:
             shutil.copymode(kaynak, hedef_yol)
         else:
             shutil.copy2(kaynak, hedef_yol)
+
+    profil_yolu = hedef / "850-hafiza/kullanici-profili.md"
+    if profil_yolu.exists():
+        atlanan.append("850-hafiza/kullanici-profili.md")
+    else:
+        rapor.append("YAZ   850-hafiza/kullanici-profili.md" + ("" if args.profil else " (boş)"))
+        if not args.kuru:
+            profil_yolu.parent.mkdir(parents=True, exist_ok=True)
+            profil_yolu.write_text(profil_notu(profil, degerler), encoding="utf-8")
 
     ayarlari_birlestir(hedef, args.kuru, rapor)
     skilleri_bagla(hedef, args.kuru, rapor)

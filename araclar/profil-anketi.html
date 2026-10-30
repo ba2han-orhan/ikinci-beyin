@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Profil Anketi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf9fc; --yuzey:#ffffff; --metin:#1f1a2e; --soluk:#6b6580; --cizgi:#e6e2ef;
+  --mor:#5b3fa6; --mor-acik:#efeaf9; --sari:#f2c230; --sari-acik:#fdf6dc;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15121d; --yuzey:#1d1928; --metin:#ece9f3; --soluk:#a49db8; --cizgi:#2f2a3d;
+    --mor:#a58cf0; --mor-acik:#2a2240; --sari:#f2c94c; --sari-acik:#2e2817;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15121d; --yuzey:#1d1928; --metin:#ece9f3; --soluk:#a49db8; --cizgi:#2f2a3d;
+  --mor:#a58cf0; --mor-acik:#2a2240; --sari:#f2c94c; --sari-acik:#2e2817;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--metin);font:16px/1.6 Inter,system-ui,sans-serif}
+main{max-width:640px;margin:0 auto;padding:48px 16px 96px}
+.ilerleme{position:sticky;top:0;height:4px;background:var(--cizgi);z-index:2}
+.ilerleme span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--mor),var(--sari));transition:width .3s}
+h1{font-size:28px;font-weight:600;margin:0 0 8px;letter-spacing:-.01em}
+h2{font-size:20px;font-weight:600;margin:0 0 4px}
+.giris{color:var(--soluk);margin:0 0 32px}
+.adim{display:none}
+.adim.aktif{display:block;animation:gel .25s ease}
+@keyframes gel{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.etiket{display:inline-block;font-size:12px;font-weight:600;color:var(--mor);background:var(--mor-acik);padding:2px 10px;border-radius:99px;margin-bottom:12px}
+.aciklama{color:var(--soluk);font-size:14px;margin:0 0 24px}
+.soru{margin-bottom:28px}
+.soru>label,.soru>.baslik{display:block;font-weight:500;margin-bottom:4px}
+.soru small{display:block;color:var(--soluk);font-size:13px;margin-bottom:10px}
+input[type=text],textarea{width:100%;font:inherit;color:inherit;background:var(--yuzey);border:1px solid var(--cizgi);border-radius:10px;padding:10px 12px;outline:none;transition:border-color .15s,box-shadow .15s}
+textarea{min-height:88px;resize:vertical}
+input[type=text]:focus,textarea:focus{border-color:var(--mor);box-shadow:0 0 0 3px var(--mor-acik)}
+.secenekler{display:flex;flex-wrap:wrap;gap:8px}
+.secenekler label{cursor:pointer}
+.secenekler input{position:absolute;opacity:0;pointer-events:none}
+.secenekler span{display:inline-block;padding:8px 14px;border:1px solid var(--cizgi);border-radius:99px;background:var(--yuzey);font-size:14px;transition:all .15s}
+.secenekler label:hover span{border-color:var(--mor)}
+.secenekler input:checked+span{background:var(--mor);border-color:var(--mor);color:#fff}
+.secenekler input:focus-visible+span{box-shadow:0 0 0 3px var(--sari)}
+.alt{display:flex;justify-content:space-between;align-items:center;margin-top:40px;gap:12px}
+button{font:inherit;font-weight:500;border:0;border-radius:10px;padding:10px 20px;cursor:pointer;transition:transform .1s,background .15s}
+button:active{transform:scale(.98)}
+.birincil{background:var(--mor);color:#fff}
+.birincil:hover{filter:brightness(1.08)}
+.ikincil{background:transparent;color:var(--soluk)}
+.ikincil:hover{color:var(--metin)}
+.vurgu{background:var(--sari);color:#1f1a2e}
+.sayac{font-size:13px;color:var(--soluk)}
+pre{background:var(--yuzey);border:1px solid var(--cizgi);border-left:3px solid var(--sari);border-radius:10px;padding:16px;font-size:13px;overflow:auto;max-height:320px;white-space:pre-wrap;word-break:break-word}
+.kutu{background:var(--sari-acik);border-radius:10px;padding:14px 16px;font-size:14px;margin:16px 0}
+.dugmeler{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.uyari{color:#c0392b;font-size:13px;margin-top:6px;display:none}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="ilerleme" aria-hidden="true"><span id="cubuk"></span></div>
+<main>
+<h1>Asistanını tanıştır</h1>
+<p class="giris">Yaklaşık 6 dakika sürer. Sorulara verdiğin cevaplar bilgisayarından çıkmaz. Sonunda bir dosya indirirsin ve kurulumda bu dosyayı kullanırsın. Boş bıraktığın soruları asistan zamanla öğrenir.</p>
+
+<form id="form" autocomplete="off">
+
+<section class="adim" data-adim="1">
+  <span class="etiket">1 / 6 · Temel</span>
+  <h2>Kimsin, kiminle konuşacaksın?</h2>
+  <p class="aciklama">Asistan her oturuma bu bilgilerle başlar.</p>
+  <div class="soru">
+    <label for="ad">Sana nasıl hitap etsin?</label>
+    <input type="text" id="ad" name="KULLANICI_ADI" required>
+    <div class="uyari">Bu alan gerekli.</div>
+  </div>
+  <div class="soru">
+    <label for="asistan">Asistanın adı ne olsun?</label>
+    <small>Örnek: Atlas, Nova, Echo. Boş bırakırsan adı "Asistan" olur.</small>
+    <input type="text" id="asistan" name="ASISTAN_ADI">
+  </div>
+  <div class="soru">
+    <label for="baglam">Kendini 1–2 cümleyle anlat.</label>
+    <small>Ne iş yapıyorsun, ne okuyorsun, günün nelerle geçiyor?</small>
+    <textarea id="baglam" name="KULLANICI_BAGLAM" required></textarea>
+    <div class="uyari">Bu alan gerekli.</div>
+  </div>
+  <div class="soru">
+    <span class="baslik">Seni en iyi anlatan üç şey neler?</span>
+    <small>Kelime de olabilir, kısa cümle de olabilir.</small>
+    <input type="text" name="uc_sey">
+  </div>
+</section>
+
+<section class="adim" data-adim="2">
+  <span class="etiket">2 / 6 · Odak</span>
+  <h2>Şu sıralar nelerle uğraşıyorsun?</h2>
+  <p class="aciklama">Asistan neyi önemseyeceğini buradan öğrenir.</p>
+  <div class="soru">
+    <span class="baslik">Odak alanların</span>
+    <small>Birden fazla seçebilirsin. Listede olmayanları aşağıya yaz.</small>
+    <div class="secenekler" data-coklu="odak">
+      <label><input type="checkbox" value="Okul / sınavlar"><span>Okul / sınavlar</span></label>
+      <label><input type="checkbox" value="İş / kariyer"><span>İş / kariyer</span></label>
+      <label><input type="checkbox" value="Yazılım"><span>Yazılım</span></label>
+      <label><input type="checkbox" value="Tasarım"><span>Tasarım</span></label>
+      <label><input type="checkbox" value="Yazı / içerik"><span>Yazı / içerik</span></label>
+      <label><input type="checkbox" value="Dil öğrenme"><span>Dil öğrenme</span></label>
+      <label><input type="checkbox" value="Kişisel gelişim"><span>Kişisel gelişim</span></label>
+      <label><input type="checkbox" value="Sağlık / spor"><span>Sağlık / spor</span></label>
+      <label><input type="checkbox" value="Para / girişim"><span>Para / girişim</span></label>
+    </div>
+    <input type="text" name="odak_diger" placeholder="Başka alanlar, virgülle" style="margin-top:10px">
+  </div>
+  <div class="soru">
+    <label for="projeler">Aktif projelerin</label>
+    <small>Her satıra bir proje: "ad — tek cümle". Her proje için ayrı bir not açılır.</small>
+    <textarea id="projeler" name="projeler" placeholder="Bitirme projesi — mobil uygulama, ocakta teslim"></textarea>
+  </div>
+</section>
+
+<section class="adim" data-adim="3">
+  <span class="etiket">3 / 6 · Hedefler</span>
+  <h2>Nereye gitmek istiyorsun?</h2>
+  <p class="aciklama">Tarihler yaklaşınca asistan oturum başında hatırlatır.</p>
+  <div class="soru">
+    <label for="h3">Önümüzdeki 3 ayda neyi başarmak istiyorsun?</label>
+    <textarea id="h3" name="hedef_3_ay"></textarea>
+  </div>
+  <div class="soru">
+    <label for="h12">1 yıl sonra nerede olmak istersin?</label>
+    <textarea id="h12" name="hedef_1_yil"></textarea>
+  </div>
+  <div class="soru">
+    <label for="tarihler">Yaklaşan önemli tarihler</label>
+    <small>Her satıra bir tane: "GG.AA.YYYY — ne".</small>
+    <textarea id="tarihler" name="tarihler" placeholder="15.01.2027 — final sınavı"></textarea>
+  </div>
+</section>
+
+<section class="adim" data-adim="4">
+  <span class="etiket">4 / 6 · Üslup</span>
+  <h2>Nasıl konuşsun?</h2>
+  <p class="aciklama">Bu bölüm asistanın kişiliğini belirler.</p>
+  <div class="soru">
+    <span class="baslik">Genel ton</span>
+    <div class="secenekler" data-tek="TON">
+      <label><input type="radio" name="r_ton" value="sıcak ve direkt"><span>Sıcak ve direkt</span></label>
+      <label><input type="radio" name="r_ton" value="kuru ve iş odaklı"><span>Kuru ve iş odaklı</span></label>
+      <label><input type="radio" name="r_ton" value="samimi ve esprili"><span>Samimi ve esprili</span></label>
+      <label><input type="radio" name="r_ton" value="sakin ve sabırlı"><span>Sakin ve sabırlı</span></label>
+    </div>
+    <input type="text" name="ton_ozel" placeholder="Ya da kendi tarifin" style="margin-top:10px">
+  </div>
+  <div class="soru">
+    <span class="baslik">Cevap uzunluğu</span>
+    <div class="secenekler" data-tek="uzunluk">
+      <label><input type="radio" name="r_uz" value="kısa ve öz"><span>Kısa ve öz</span></label>
+      <label><input type="radio" name="r_uz" value="duruma göre"><span>Duruma göre</span></label>
+      <label><input type="radio" name="r_uz" value="ayrıntılı"><span>Ayrıntılı</span></label>
+    </div>
+  </div>
+  <div class="soru">
+    <span class="baslik">Fikrine katılmadığında ne yapsın?</span>
+    <div class="secenekler" data-tek="itiraz">
+      <label><input type="radio" name="r_it" value="açıkça itiraz etsin, gerekçesini söylesin"><span>Açıkça itiraz etsin</span></label>
+      <label><input type="radio" name="r_it" value="nazikçe alternatif önersin"><span>Nazikçe alternatif önersin</span></label>
+      <label><input type="radio" name="r_it" value="yalnız ciddi risk varsa uyarsın"><span>Yalnız ciddi riskte uyarsın</span></label>
+    </div>
+  </div>
+  <div class="soru">
+    <span class="baslik">Emoji</span>
+    <div class="secenekler" data-tek="emoji">
+      <label><input type="radio" name="r_em" value="hiç kullanmasın"><span>Hiç</span></label>
+      <label><input type="radio" name="r_em" value="ara sıra kullanabilir"><span>Ara sıra</span></label>
+      <label><input type="radio" name="r_em" value="rahatça kullanabilir"><span>Rahatça</span></label>
+    </div>
+  </div>
+  <div class="soru">
+    <span class="baslik">Yeni bir şeyi nasıl daha iyi anlarsın?</span>
+    <div class="secenekler" data-coklu="ogrenme">
+      <label><input type="checkbox" value="benzetmeyle"><span>Benzetmeyle</span></label>
+      <label><input type="checkbox" value="somut örnekle"><span>Somut örnekle</span></label>
+      <label><input type="checkbox" value="adım adım"><span>Adım adım</span></label>
+      <label><input type="checkbox" value="önce büyük resim"><span>Önce büyük resim</span></label>
+      <label><input type="checkbox" value="görsel / şemayla"><span>Görsel / şemayla</span></label>
+    </div>
+  </div>
+</section>
+
+<section class="adim" data-adim="5">
+  <span class="etiket">5 / 6 · Ritim</span>
+  <h2>Ne zaman, nasıl çalışıyorsun?</h2>
+  <p class="aciklama">Asistan hatırlatmalarını ve öneri yoğunluğunu buna göre ayarlar.</p>
+  <div class="soru">
+    <span class="baslik">En verimli olduğun saatler</span>
+    <div class="secenekler" data-coklu="saatler">
+      <label><input type="checkbox" value="sabah"><span>Sabah</span></label>
+      <label><input type="checkbox" value="öğleden sonra"><span>Öğleden sonra</span></label>
+      <label><input type="checkbox" value="akşam"><span>Akşam</span></label>
+      <label><input type="checkbox" value="gece"><span>Gece</span></label>
+    </div>
+  </div>
+  <div class="soru">
+    <span class="baslik">Oturumların genelde nasıl?</span>
+    <div class="secenekler" data-tek="oturum">
+      <label><input type="radio" name="r_ot" value="kısa ve sık"><span>Kısa ve sık</span></label>
+      <label><input type="radio" name="r_ot" value="uzun ve odaklı"><span>Uzun ve odaklı</span></label>
+      <label><input type="radio" name="r_ot" value="düzensiz"><span>Düzensiz</span></label>
+    </div>
+  </div>
+  <div class="soru">
+    <span class="baslik">Oturum başında hatırlatma</span>
+    <div class="secenekler" data-tek="hatirlatma">
+      <label><input type="radio" name="r_ha" value="açık işleri ve yaklaşan tarihleri hatırlatsın"><span>Hatırlatsın</span></label>
+      <label><input type="radio" name="r_ha" value="yalnız yaklaşan tarihleri söylesin"><span>Yalnız tarihler</span></label>
+      <label><input type="radio" name="r_ha" value="ben sormadıkça hatırlatmasın"><span>Sormadıkça hayır</span></label>
+    </div>
+  </div>
+</section>
+
+<section class="adim" data-adim="6">
+  <span class="etiket">6 / 6 · Sınırlar</span>
+  <h2>Neleri asla yapmasın?</h2>
+  <p class="aciklama">Buraya yazdıkların asistanın değişmez kuralı olur.</p>
+  <div class="soru">
+    <span class="baslik">Onay almadan yapmasın</span>
+    <div class="secenekler" data-coklu="kirmizi">
+      <label><input type="checkbox" value="dosya silmek" checked><span>Dosya silmek</span></label>
+      <label><input type="checkbox" value="notlarımı taşımak ya da yeniden adlandırmak" checked><span>Notlarımı taşımak</span></label>
+      <label><input type="checkbox" value="internete bir şey göndermek"><span>İnternete göndermek</span></label>
+      <label><input type="checkbox" value="büyük değişikliğe başlamak"><span>Büyük değişikliğe başlamak</span></label>
+    </div>
+  </div>
+  <div class="soru">
+    <label for="sinir">Asistanlarda seni en çok sinir eden davranış ne?</label>
+    <small>Örnek: "her cevabı övgüyle açması", "gereksiz uzun yazması".</small>
+    <textarea id="sinir" name="sinir_eden"></textarea>
+  </div>
+  <div class="soru">
+    <label for="ek">Eklemek istediğin başka bir şey</label>
+    <textarea id="ek" name="ek_not"></textarea>
+  </div>
+</section>
+
+<section class="adim" data-adim="7">
+  <span class="etiket">Bitti</span>
+  <h2>Profilin hazır</h2>
+  <p class="aciklama">Dosyayı indir. Kurulumu yapan asistana dosyanın nerede olduğunu söylemen yeterli.</p>
+  <div class="dugmeler">
+    <button type="button" class="vurgu" id="indir">profil.json indir</button>
+    <button type="button" class="birincil" id="kopyala">Kopyala</button>
+  </div>
+  <div class="kutu">Kurulum komutu: <code>python3 araclar/kur.py --hedef &lt;vault&gt; --profil profil.json</code></div>
+  <pre id="onizleme"></pre>
+</section>
+
+<div class="alt">
+  <button type="button" class="ikincil" id="geri">← Geri</button>
+  <span class="sayac" id="sayac"></span>
+  <button type="button" class="birincil" id="ileri">İleri →</button>
+</div>
+</form>
+</main>
+
+<script>
+const ANAHTAR = "profil-anketi-taslak";
+const form = document.getElementById("form");
+const adimlar = [...document.querySelectorAll(".adim")];
+let simdiki = 0;
+
+function bugun(){
+  const d = new Date(), p = n => String(n).padStart(2, "0");
+  return `${p(d.getDate())}.${p(d.getMonth() + 1)}.${d.getFullYear()}`;
+}
+function satirlar(metin){ return metin.split("\n").map(s => s.trim()).filter(Boolean); }
+function deger(ad){ const el = form.elements[ad]; return el ? el.value.trim() : ""; }
+function tek(ad){ const el = document.querySelector(`[data-tek="${ad}"] input:checked`); return el ? el.value : ""; }
+function coklu(ad){ return [...document.querySelectorAll(`[data-coklu="${ad}"] input:checked`)].map(e => e.value); }
+
+function topla(){
+  const odak = [...coklu("odak"), ...deger("odak_diger").split(",").map(s => s.trim()).filter(Boolean)];
+  return {
+    surum: 1,
+    degerler: {
+      KULLANICI_ADI: deger("KULLANICI_ADI"),
+      ASISTAN_ADI: deger("ASISTAN_ADI") || "Asistan",
+      KULLANICI_BAGLAM: deger("KULLANICI_BAGLAM"),
+      ODAK_ALANLARI: odak.join(", ") || "henüz belirtilmedi",
+      TON: deger("ton_ozel") || tek("TON") || "sıcak ve direkt",
+      BUGUN: bugun()
+    },
+    profil: {
+      uc_sey: deger("uc_sey"),
+      projeler: satirlar(deger("projeler")),
+      hedef_3_ay: deger("hedef_3_ay"),
+      hedef_1_yil: deger("hedef_1_yil"),
+      tarihler: satirlar(deger("tarihler")),
+      uzunluk: tek("uzunluk"),
+      itiraz: tek("itiraz"),
+      emoji: tek("emoji"),
+      ogrenme: coklu("ogrenme"),
+      saatler: coklu("saatler"),
+      oturum: tek("oturum"),
+      hatirlatma: tek("hatirlatma"),
+      onaysiz_yapmasin: coklu("kirmizi"),
+      sinir_eden: deger("sinir_eden"),
+      ek_not: deger("ek_not")
+    }
+  };
+}
+
+function kaydet(){
+  const veri = {};
+  form.querySelectorAll("input,textarea").forEach((el, i) => {
+    veri[i] = (el.type === "checkbox" || el.type === "radio") ? el.checked : el.value;
+  });
+  try { localStorage.setItem(ANAHTAR, JSON.stringify({ veri, simdiki })); } catch (e) {}
+}
+function yukle(){
+  try {
+    const k = JSON.parse(localStorage.getItem(ANAHTAR) || "null");
+    if (!k) return;
+    form.querySelectorAll("input,textarea").forEach((el, i) => {
+      if (!(i in k.veri)) return;
+      if (el.type === "checkbox" || el.type === "radio") el.checked = k.veri[i]; else el.value = k.veri[i];
+    });
+    simdiki = Math.min(k.simdiki || 0, adimlar.length - 1);
+  } catch (e) {}
+}
+
+function dogrula(){
+  let tamam = true;
+  adimlar[simdiki].querySelectorAll("[required]").forEach(el => {
+    const bos = !el.value.trim();
+    el.nextElementSibling.style.display = bos ? "block" : "none";
+    if (bos && tamam) { el.focus(); tamam = false; }
+  });
+  return tamam;
+}
+
+function goster(){
+  adimlar.forEach((a, i) => a.classList.toggle("aktif", i === simdiki));
+  const son = simdiki === adimlar.length - 1;
+  document.getElementById("geri").style.visibility = simdiki === 0 ? "hidden" : "visible";
+  document.getElementById("ileri").style.display = son ? "none" : "";
+  document.getElementById("ileri").textContent = simdiki === adimlar.length - 2 ? "Bitir →" : "İleri →";
+  document.getElementById("sayac").textContent = son ? "" : `${simdiki + 1} / ${adimlar.length - 1}`;
+  document.getElementById("cubuk").style.width = `${(simdiki / (adimlar.length - 1)) * 100}%`;
+  if (son) document.getElementById("onizleme").textContent = JSON.stringify(topla(), null, 2);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+document.getElementById("ileri").onclick = () => { if (!dogrula()) return; simdiki++; kaydet(); goster(); };
+document.getElementById("geri").onclick = () => { simdiki--; kaydet(); goster(); };
+form.addEventListener("input", kaydet);
+form.addEventListener("submit", e => e.preventDefault());
+
+document.getElementById("indir").onclick = () => {
+  const blob = new Blob([JSON.stringify(topla(), null, 2)], { type: "application/json" });
+  const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: "profil.json" });
+  a.click(); URL.revokeObjectURL(a.href);
+};
+document.getElementById("kopyala").onclick = async e => {
+  try { await navigator.clipboard.writeText(JSON.stringify(topla(), null, 2)); e.target.textContent = "Kopyalandı"; }
+  catch (err) { e.target.textContent = "Kopyalanamadı"; }
+  setTimeout(() => e.target.textContent = "Kopyala", 1500);
+};
+
+yukle();
+goster();
+</script>
+</body>
+</html>
