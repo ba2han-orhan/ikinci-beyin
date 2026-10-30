@@ -99,6 +99,12 @@ def main() -> int:
     except Exception:
         return 0
     event = d.get("hook_event_name") or ""
+    # Codex hook'ları global (~/.codex/hooks.json); vault dışındaki oturumlar kaydedilmez.
+    if not os.environ.get("CLAUDE_PROJECT_DIR"):
+        cwd = Path(d.get("cwd") or os.getcwd()).resolve()
+        vault = SCRIPTS.resolve().parent.parent
+        if cwd != vault and vault not in cwd.parents:
+            return 0
     runner = os.environ.get("BEYIN_MODEL_RUNNER", "").strip().casefold()
     if runner in ("antigravity", "agy"):
         istemci = "antigravity"

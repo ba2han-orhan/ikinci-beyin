@@ -53,11 +53,22 @@ Düzeltme: dosyanın shebang'inden hemen sonraki satıra `[ -n "${BEYIN_INVOKED_
 ### 4. python3 ve model CLI yolda mı
 
 ```bash
-if command -v python3 >/dev/null 2>&1; then echo "python3: $(python3 -V 2>&1)"; else echo "python3: YOK"; fi; command -v claude >/dev/null 2>&1 \&\& echo "model: claude var" || echo "model: claude YOK"
+if command -v python3 >/dev/null 2>&1; then echo "python3: $(python3 -V 2>&1)"; else echo "python3: YOK"; fi; for c in codex claude; do command -v $c >/dev/null 2>&1 && echo "$c: var" || echo "$c: yok"; done
 ```
 
-🟢 python3 ve `claude` var. 🔴 biri yoksa arka plan özetleyici ve derleyici durur.
-Düzeltme: python3'ü ve Claude Code CLI'yi PATH'e ekle.
+🟢 python3 ve kullanılan araç (`codex` ya da `claude`) var. Özetleyici oturumu açan aracı kullanır
+(Codex oturumunda `codex exec`, Claude oturumunda `claude -p`). 🔴 python3 ya da kullanılan araç yoksa
+arka plan özetleyici ve derleyici durur. Düzeltme: eksik aracı PATH'e ekle; Codex'te `codex login status`.
+
+### 4b. Codex hook kaydı (yalnız Codex kullanılıyorsa)
+
+```bash
+grep -c '/.beyin/hooks/' ~/.codex/hooks.json 2>/dev/null || echo "codex hooks.json yok"; grep -o '/[^"]*/.beyin/hooks/' ~/.codex/hooks.json 2>/dev/null | sort -u
+```
+
+🟢 sayı `8` ve yol bu vault'u gösteriyor. 🔴 sayı farklı, dosya yok ya da yol eski bir klasörü
+gösteriyor (vault taşınmış). Düzeltme: `python3 .beyin/scripts/codex_kur.py`, sonra Codex'te `/hooks`
+ile yeni hook'ları güvenilir işaretle. Hafıza yine gelmiyorsa işaretlenmemiş hook en olası neden.
 
 ### 5. python3-missing işareti
 

@@ -10,7 +10,9 @@ Kurallar:
 - Yer tutucular ({{AD}}) yalnız bu çalıştırmada kopyalanan dosyalarda doldurulur.
 - `.claude/settings.json` varsa hook'lar birleştirilir (mevcut girdiler korunur), önce
   `.claude/settings.json.kurulum-oncesi` kopyası alınır.
-- `.claude/skills` bir klasörse beyin skill'leri tek tek bağlanır.
+- `.claude/skills` ve `.agents/skills` (Codex) bir klasörse beyin skill'leri tek tek bağlanır.
+- `AGENTS.md` (Codex'in okuduğu yönlendirici) yoksa `CLAUDE.md`'ye bağlantı olarak açılır.
+- `--codex` verilirse hook'lar ayrıca `~/.codex/hooks.json`'a yazılır (`.beyin/scripts/codex_kur.py`).
 """
 
 from __future__ import annotations
@@ -20,6 +22,7 @@ import json
 import os
 import re
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -88,23 +91,33 @@ def ayarlari_birlestir(hedef: Path, kuru: bool, rapor: list[str]) -> None:
         yol.write_text(json.dumps(mevcut, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
-def skilleri_bagla(hedef: Path, kuru: bool, rapor: list[str]) -> None:
-    yol = hedef / ".claude/skills"
+def agents_bagla(hedef: Path, kuru: bool, rapor: list[str]) -> None:
+    yol = hedef / "AGENTS.md"
+    if yol.exists() or yol.is_symlink():
+        rapor.append("ATLA  AGENTS.md (zaten var; CLAUDE.md içeriğini oraya eklemeyi öner)")
+        return
+    rapor.append("BAGLA AGENTS.md -> CLAUDE.md")
+    if not kuru:
+        os.symlink("CLAUDE.md", yol)
+
+
+def skilleri_bagla(hedef: Path, kuru: bool, rapor: list[str], kok: str = ".claude") -> None:
+    yol = hedef / kok / "skills"
     if not yol.exists() and not yol.is_symlink():
-        rapor.append("BAGLA .claude/skills -> ../.beyin/skills")
+        rapor.append(f"BAGLA {kok}/skills -> ../.beyin/skills")
         if not kuru:
             yol.parent.mkdir(parents=True, exist_ok=True)
             os.symlink("../.beyin/skills", yol)
         return
     if yol.is_symlink():
-        rapor.append(f"ATLA  .claude/skills zaten bağlantı ({os.readlink(yol)})")
+        rapor.append(f"ATLA  {kok}/skills zaten bağlantı ({os.readlink(yol)})")
         return
     for skill in sorted((SABLON / ".beyin/skills").iterdir()):
         alt = yol / skill.name
         if alt.exists() or alt.is_symlink():
-            rapor.append(f"ATLA  .claude/skills/{skill.name} (zaten var)")
+            rapor.append(f"ATLA  {kok}/skills/{skill.name} (zaten var)")
             continue
-        rapor.append(f"BAGLA .claude/skills/{skill.name} -> ../../.beyin/skills/{skill.name}")
+        rapor.append(f"BAGLA {kok}/skills/{skill.name} -> ../../.beyin/skills/{skill.name}")
         if not kuru:
             os.symlink(f"../../.beyin/skills/{skill.name}", alt)
 
@@ -114,6 +127,7 @@ def main() -> int:
     ap.add_argument("--hedef", type=Path, required=True)
     ap.add_argument("--degerler", type=Path, required=True)
     ap.add_argument("--kuru", action="store_true", help="yalnız planı göster")
+    ap.add_argument("--codex", action="store_true", help="hook'ları ~/.codex/hooks.json'a da yaz")
     args = ap.parse_args()
 
     hedef = args.hedef.expanduser().resolve()
@@ -140,11 +154,20 @@ def main() -> int:
 
     ayarlari_birlestir(hedef, args.kuru, rapor)
     skilleri_bagla(hedef, args.kuru, rapor)
+    skilleri_bagla(hedef, args.kuru, rapor, ".agents")
+    agents_bagla(hedef, args.kuru, rapor)
 
     if not args.kuru:
         for yol in list((hedef / ".beyin/hooks").glob("*")) + list((hedef / ".beyin/scripts").glob("*.sh")):
             if yol.is_file():
                 yol.chmod(yol.stat().st_mode | 0o111)
+
+    if args.codex:
+        rapor.append("CODEX ~/.codex/hooks.json (beyin hook'ları eklenir, diğerleri korunur)")
+        if not args.kuru:
+            sonuc = subprocess.run([sys.executable, str(hedef / ".beyin/scripts/codex_kur.py")],
+                                   capture_output=True, text=True)
+            rapor.append("      " + (sonuc.stdout.strip() or sonuc.stderr.strip()).replace("\n", "\n      "))
 
     print("\n".join(rapor))
     if atlanan:

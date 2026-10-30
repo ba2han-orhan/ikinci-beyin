@@ -1,6 +1,6 @@
 # KURULUM.md — İkinci Beyin Kurulum Rehberi (AI için)
 
-> Sen bu repoyu indiren yapay zekâ asistanısın (tercihen Claude Code). Karşındaki kişi kendi
+> Sen bu repoyu indiren yapay zekâ asistanısın: **Codex** ya da **Claude Code**. İkisi de desteklenir. Karşındaki kişi kendi
 > Obsidian vault'unun üstüne, oturumlar arasında **kendiliğinden hatırlayan** bir ikinci beyin
 > kurmak istiyor. Bu dosya eksiksiz kurulum talimatıdır. Baştan sona bir kez oku, sonra
 > aşamaları sırayla uygula. Başka bağlama ihtiyacın yok.
@@ -10,17 +10,19 @@
 ## Fikir (kullanıcıya kendi cümlelerinle, kısaca anlat)
 
 AI sohbetleri her oturumda kullanıcıyı unutur. Bu sistem bunu düzeltir: Obsidian vault'u ortak
-hafıza olur, Claude Code onu sürer. Hafıza bir disiplin değil, **mekanizmadır**:
+hafıza olur, Codex ya da Claude Code onu sürer. Hafıza bir disiplin değil, **mekanizmadır**:
 
 1. **Oturum başı** — hook, son oturum özetini, açık konuları, kuralları ve son gözlemi bağlama koyar.
-2. **Oturum sonu / sıkıştırma öncesi** — hook arka planda `claude -p` (haiku) ile konuşmayı özetler,
+2. **Oturum sonu / sıkıştırma öncesi** — hook arka planda konuşmayı özetler (Codex'te `codex exec`,
+   Claude Code'da `claude -p` haiku),
    `800-gunluk-oturum-kayitlari/GG.AA.YYYY.md` dosyasına yazar.
 3. **Akşam (18:00 sonrası ilk fırsatta)** — derleyici günlük logları `550-derlenmis-bilgi-tabani/`
    altında birbirine bağlı kavram makalelerine çevirir.
 4. **İlişkisel katman** — asistan anlamlı oturum sonunda `850-hafiza/` dosyalarını (son oturum,
    aktif konular, gözlemler, kurallar) kendisi günceller. Kullanıcı düzeltme yaptığında kural yazar.
 
-API anahtarı gerekmez; özetleyici ve derleyici kullanıcının mevcut Claude aboneliğiyle çalışır.
+API anahtarı gerekmez; özetleyici ve derleyici o oturumu açan aracın mevcut aboneliğiyle (ChatGPT/Codex
+ya da Claude) çalışır. Hangi araçla açılırsa onu kullanır.
 
 ---
 
@@ -49,14 +51,14 @@ API anahtarı gerekmez; özetleyici ve derleyici kullanıcının mevcut Claude a
 Ön koşulları kontrol et:
 
 ```bash
-for k in git python3 claude bash; do command -v $k >/dev/null && echo "$k: var" || echo "$k: YOK"; done
+for k in git python3 codex claude bash; do command -v $k >/dev/null && echo "$k: var" || echo "$k: YOK"; done
 python3 -c 'import sys; print("python", sys.version.split()[0], "OK" if sys.version_info >= (3, 10) else "ESKİ (3.10+ gerekli)")'
 ```
 
 Eksik olan varsa kurulum komutunu göster ve **onay alarak** kur (macOS: `brew install git python`;
-Debian/Ubuntu: `sudo apt install git python3`; Arch: `sudo pacman -S git python`). Claude Code yoksa:
-https://docs.claude.com/claude-code adresindeki resmi kurulumu öner. `claude` olmadan arka plan
-özetleyici çalışmaz; bu zorunlu.
+Debian/Ubuntu: `sudo apt install git python3`; Arch: `sudo pacman -S git python`). `codex` ve `claude`'dan
+**en az biri** zorunlu (kullanıcının kullandığı araç). Codex için `codex login` ile giriş yapılmış
+olmalı (`codex login status`). Yoksa resmi kurulumu öner: `npm install -g @openai/codex`.
 
 ---
 
@@ -85,7 +87,8 @@ olduğunu yarım cümleyle söyle. Cevapları bir yere not et; sonunda özetleyi
 | 6 | "Obsidian vault'un nerede? (klasör yolu)" | hedef yol | Yolu doğrula: `ls`, `.obsidian/` var mı |
 | 7 | "Beyni mevcut vault'unun **içine** mi kuralım (önerilen: notlarına dokunmadan yanına numaralı klasörler eklenir), yoksa **ayrı yeni** bir vault mu?" | hedef yol | Ayrıysa yeni klasör yolu iste |
 | 8 | "Vault'un adı ne olsun?" | `{{VAULT_ADI}}` | Varsayılan: klasör adı |
-| 9 | "Notlarını otomatik yedekleyelim mi? Özel (private) bir GitHub reposu var mı ya da açalım mı?" | — | Aşama 6 |
+| 9 | "Beyni hangi araçla kullanacaksın: Codex, Claude Code, ikisi?" | — | Codex ise aşama 4'te `--codex` |
+| 10 | "Notlarını otomatik yedekleyelim mi? Özel (private) bir GitHub reposu var mı ya da açalım mı?" | — | Aşama 6 |
 
 `{{BUGUN}}` = `date +%d.%m.%Y`. `{{MEVCUT_NOTLAR_SATIRI}}` aşama 3'te üretilir.
 
@@ -138,11 +141,17 @@ EOF
 python3 "$REPO/araclar/kur.py" --hedef "$HEDEF" --degerler /tmp/beyin-degerler.json --kuru
 ```
 
-Onay gelince uygula:
+Onay gelince uygula. Kullanıcı **Codex** kullanıyorsa (cevap 9) `--codex` ekle:
 
 ```bash
-python3 "$REPO/araclar/kur.py" --hedef "$HEDEF" --degerler /tmp/beyin-degerler.json
+python3 "$REPO/araclar/kur.py" --hedef "$HEDEF" --degerler /tmp/beyin-degerler.json --codex
 ```
+
+`--codex` ne yapar: Codex proje klasöründeki hook'ları okumadığı için beyin hook'larını global
+`~/.codex/hooks.json` dosyasına mutlak yollarla ekler (önce `hooks.json.beyin-oncesi` yedeği alır,
+kullanıcının diğer hook'larına dokunmaz). Hook'lar vault dışındaki Codex oturumlarında kendiliğinden
+susar. Codex `AGENTS.md`'yi okur; kurulum onu `CLAUDE.md`'ye bağlantı olarak açar, skill'leri de
+`.agents/skills` altına bağlar. Vault taşınırsa `python3 .beyin/scripts/codex_kur.py` yeniden çalıştırılır.
 
 Script ne yapar: şablonu kopyalar (hedefte olanı **atlar**), yer tutucuları doldurur, mevcut
 `.claude/settings.json` varsa hook'ları birleştirir (önce `settings.json.kurulum-oncesi` yedeği
@@ -181,14 +190,18 @@ echo '{"session_id":"kurulum-testi","cwd":"'"$PWD"'"}' | .beyin/hooks/session-st
 .beyin/hooks/session-start.sh kurallar </dev/null | head -c 200; echo
 # 2) Hafıza dosyaları biçim olarak temiz mi?
 python3 .beyin/scripts/hafiza_lint.py
-# 3) Hook kayıtları tam mı?
+# 3) Hook kayıtları tam mı? (Claude Code ayarı)
 python3 .beyin/scripts/context_health.py
+# 3b) Codex kullanıyorsa: beyin hook'ları global dosyada mı?
+grep -c '/.beyin/hooks/' ~/.codex/hooks.json 2>/dev/null
 # 4) 000 yakalama çalışıyor mu? (test girdisini sonra sil)
 echo '{"session_id":"kurulum-testi","cwd":"'"$PWD"'","prompt":"kurulum testi 000"}' | .beyin/hooks/prompt-counter.sh
 tail -4 000-gelen-kutusu/hizli-not-yakalama.md
 ```
 
-Beklenen: 1'de `[Hafıza: Son Oturum]` içeren JSON, 2'de `0 hata`, 3'te dört olay `ok`, 4'te
+Codex için 1'i `env -u CLAUDE_PROJECT_DIR` ile de dene (Codex bu değişkeni vermez; çıktıda
+`[Hafıza: Kurallar]` da olmalı). Beklenen: 1'de `[Hafıza: Son Oturum]` içeren JSON, 2'de `0 hata`,
+3'te dört olay `ok`, 3b'de `8`, 4'te
 "kaydedildi" ve dosyanın sonunda alıntı. 4'teki test girdisini (`### … · Hızlı yakalama` bloğunu)
 `hizli-not-yakalama.md`'den sil. Ardından test durum dosyalarını temizle:
 `rm -f .beyin/scripts/.state/*kurulum* .beyin/scripts/.state/prompt_count.* .beyin/scripts/.state/session_start_time.*`
@@ -216,7 +229,7 @@ git -c user.name="$(git config user.name || echo beyin)" -c user.email="$(git co
 Vault zaten bir git deposuysa ve kullanıcının kendi `.gitignore`'u varsa, şablonun `.gitignore`
 satırları atlanmış olabilir; `REPO/sablon/.gitignore` içindeki satırları eksikse **ekle** (silme).
 
-**Remote (önerilir, cevap 9 evetse):** Notlar kişisel olduğu için repo mutlaka **private** olmalı.
+**Remote (önerilir, cevap 10 evetse):** Notlar kişisel olduğu için repo mutlaka **private** olmalı.
 `gh` varsa: `gh repo create <ad> --private --source . --push`. Yoksa kullanıcıdan boş private repo
 adresini iste: `git remote add origin <adres> && git push -u origin HEAD`.
 
@@ -240,6 +253,7 @@ Kullanıcıya şu biçimde kısa bir rapor ver:
 ✅ İkinci beyin kuruldu: <HEDEF>
 - Asistan: <ASISTAN_ADI> · Ton: <TON>
 - Mevcut notlar: <N> not, dokunulmadı
+- Araç: <Codex / Claude Code / ikisi>
 - Hook'lar: 7 olay bağlı (oturum başı/sonu, sıkıştırma, mesaj sayacı, bağlam bekçisi, hata yakalayıcı, yıkıcı komut bekçisi)
 - Skill'ler: beyin-doktor, haftalik-ozet, hata-defteri, gecmis-import
 - Yedek: <git commit / remote / zamanlayıcı durumu>
@@ -248,8 +262,11 @@ Kullanıcıya şu biçimde kısa bir rapor ver:
 
 Sonra kullanım talimatını ver:
 
-1. **Bu oturumu kapat**, terminalde `cd "<HEDEF>" && claude` ile yeniden aç. Hook'lar oturum
-   başında yüklenir; Claude Code proje hook'larını onaylamanı isterse onayla.
+1. **Bu oturumu kapat**, terminalde vault'a geçip aracını yeniden aç: `cd "<HEDEF>" && codex`
+   (ya da `claude`). Hook'lar oturum başında yüklenir.
+   - **Codex:** ilk açılışta klasöre güven ver, sonra `/hooks` yaz ve beyin hook'larını
+     **güvenilir işaretle**. İşaretlenmeyen hook hiç çalışmaz; bu adım atlanırsa hafıza gelmez.
+   - **Claude Code:** proje hook'larını onaylamanı isterse onayla.
 2. Normal konuş. Oturum sonunda özet kendiliğinden düşer; akşam bilgi tabanına derlenir.
 3. Mesajın sonuna ` 000` yazarsan mesaj gelen kutusuna kaydedilir.
 4. Asistan bir şeyi yanlış yaparsa "bunu böyle yapma" de; kural olarak kaydeder.
@@ -271,7 +288,7 @@ for d in hooks scripts skills config; do rsync -a --exclude '.state' --exclude '
 
 Ardından `beyin doktor` çalıştır.
 
-**Kaldırma:** `.claude/settings.json` içindeki `.beyin/` geçen hook girdilerini sil (ya da
+**Kaldırma:** Codex için `python3 .beyin/scripts/codex_kur.py --kaldir`. Claude için `.claude/settings.json` içindeki `.beyin/` geçen hook girdilerini sil (ya da
 `settings.json.kurulum-oncesi` yedeğini geri koy), cron satırını kaldır (`crontab -e`). Klasörler
 kullanıcının verisidir; silmeden önce mutlaka sor.
 
@@ -281,8 +298,8 @@ kullanıcının verisidir; silmeden önce mutlaka sor.
 
 | Belirti | Bak |
 | --- | --- |
-| Oturum başında hafıza gelmiyor | `claude` vault kökünde mi açıldı? `.claude/settings.json` hook'ları var mı? `beyin doktor` |
-| Günlük log oluşmuyor | `claude` PATH'te mi? `.beyin/scripts/.state/last-flush.json` içindeki hata alanı |
+| Oturum başında hafıza gelmiyor | Araç vault kökünde mi açıldı? Codex: `~/.codex/hooks.json`'da `.beyin/hooks` var mı, `/hooks` ile güvenilir işaretlendi mi? Claude: `.claude/settings.json` hook'ları var mı? `beyin doktor` |
+| Günlük log oluşmuyor | `codex`/`claude` PATH'te ve girişli mi (`codex login status`)? `.beyin/scripts/.state/last-flush.json` içindeki hata alanı |
 | Derleme olmuyor | 18:00'den sonra bir oturum açılınca tetiklenir; elle: `python3 .beyin/scripts/compile.py` |
 | "python3-missing" uyarısı | python3'ü PATH'e ekle, `.beyin/scripts/.state/python3-missing` dosyasını sil |
 | Yıkıcı komut bekçisi bir silmeyi durdurdu | Kasıtlı: asistan neyi sileceğini söyleyip onay ister; kullanıcı onaylarsa komutu `! <komut>` ile kendisi çalıştırır |
