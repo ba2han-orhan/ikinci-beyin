@@ -65,7 +65,7 @@ https://docs.claude.com/claude-code adresindeki resmi kurulumu öner. `claude` o
 Bu repo zaten indirildiyse yolunu not et (`KURULUM.md`'nin bulunduğu klasör = `REPO`). Değilse:
 
 ```bash
-REPO=$(mktemp -d)/ikinci-beyin && git clone <bu-reponun-adresi> "$REPO"
+REPO=$(mktemp -d)/ikinci-beyin && git clone https://github.com/ba2han-orhan/ikinci-beyin.git "$REPO"
 ```
 
 ---
